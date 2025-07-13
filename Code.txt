@@ -1,0 +1,278 @@
+''============================================================================================
+''****************
+''Business requirement: OpenfileFromFolder To loop through all Excel files in a user specified folder and perform a set task on them
+''Any types of Excel Automation, Report, Dashboard, VBA, Macros, MIS, Adv. Excel, SQL, Web Development using Django please contact me
+''Name:Mahetab
+''mahetabforwork@gmail.com
+''Mob:+91 9545302653
+
+''****************
+''============================================================================================
+Option Base 1
+Dim shtName() As String
+Dim arrayCounter As Integer
+Dim firstSheetName As String
+Dim totalSheetCount As Integer
+
+
+    
+Sub CopyFilterData()
+'' Program start from here
+    
+    'ReDim shtName(Sheets.Count)
+    Call application_Disable
+    
+    Dim r As Integer
+    Dim sheetCounter As Integer
+    
+    
+    Dim brand As String
+    Dim ws As Worksheet
+    
+    'ThisWorkbook.Activate
+    Sheets("Data").Activate
+    Sheets("Data").Select
+    
+    Set ws = ActiveSheet
+    ws.Range("A1:Z1").AutoFilter
+    r = 1
+    sheetCounter = 0
+    
+    Do
+        r = r + 1
+
+        brand = ws.Range("C" & r).Value
+        On Error Resume Next
+        If Sheets(brand) Is Nothing Then
+            sheetCounter = sheetCounter + 1
+            ws.Range("A1:Z1").AutoFilter Field:=3, Criteria1:=brand
+            ws.Range("A1").CurrentRegion.SpecialCells(xlCellTypeVisible).Copy
+            Sheets.Add.Name = brand
+            Sheets(brand).Paste
+            Worksheets(brand).Move After:=Worksheets(Worksheets.Count)
+            
+            arrayCounter = sheetCounter
+            shtName(arrayCounter) = brand
+            
+            
+'            sheetName = brand
+'            preSheetName = sheetName
+'
+'            If preSheetName <> sheetName Then
+'                Sheets(sheetName).Name = "Sheet_" & sheetCounter
+'            End If
+'
+'             shName(sheetCounter - 1) = ActiveSheet.Name
+            'Sheets(shtName).Name = "Sheet_" & sheetCounter
+            
+            ws.ShowAllData
+        
+        End If
+        
+        Call autoFileColumn
+        
+    Loop While ws.Range("C" & r + 1).Value <> ""
+    
+    'MsgBox ("Enjoy Your take is done!!")
+    
+'      For i = 1 To UBound(shtName)
+'        Sheets(shtName(i)).Select
+'      Next
+      
+    Call application_Enable
+    'Call giveSheetName
+      
+End Sub
+
+Sub autoFileColumn()
+' autoFileColumn Macro
+
+    Range("A1:H50000").Select
+    Selection.Columns.AutoFit
+    Range("A1").Select
+End Sub
+
+Sub application_Disable()
+    
+    Application.ScreenUpdating = False
+    Application.DisplayAlerts = False
+    Application.Calculation = xlCalculationManual
+    
+End Sub
+
+Sub application_Enable()
+    
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
+    Application.Calculation = xlCalculationAutomatic
+    
+End Sub
+
+
+Sub START_LoopAllExcelFilesInFolder()
+'PURPOSE: openfileFromFolder To loop through all Excel files in a user specified folder and perform a set task on them
+
+Dim wb As Workbook
+Dim myPath As String
+Dim myFile As String
+Dim myExtension As String
+
+'Dim FldrPicker As FileDialog
+
+'Optimize Macro Speed
+  Application.ScreenUpdating = False
+  Application.EnableEvents = False
+  Application.Calculation = xlCalculationManual
+
+  myPath = Sheets("VBA").Range("C2").Value
+  If myPath = "" Then GoTo ResetSettings
+
+'Target File Extension (must include wildcard "*")
+  myExtension = "*.xls*"
+
+'Target Path with Ending Extention
+  myFile = Dir(myPath & "\" & myExtension)
+
+'Loop through each Excel file in folder
+  Do While myFile <> ""
+    'Set variable equal to opened workbook
+      Set wb = Workbooks.Open(Filename:=myPath & "\" & myFile)
+    
+    
+    Call GoToFirstSheet
+    Call deleteSheetRow
+    
+    Call CopyFilterData
+    'Call GiveSheetName ''delete data sheet
+    Call GiveSheetName1 '' don't delete data sheet
+    
+    'Ensure Workbook has opened before moving on to next line of code
+      DoEvents
+    
+    
+    'Save and Close Workbook
+      wb.Close SaveChanges:=True
+      
+    'Ensure Workbook has closed before moving on to next line of code
+      DoEvents
+
+    'Get next file name
+      myFile = Dir
+  Loop
+
+'Message Box when tasks are completed
+  'MsgBox "Task Complete!"
+
+ResetSettings:
+  'Reset Macro Optimization Settings
+    Application.EnableEvents = True
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+
+End Sub
+
+
+Sub GoToFirstSheet()
+    
+    Application.DisplayAlerts = False
+    
+'    Dim lastRow As Integer
+    
+    On Error Resume Next
+    Sheets(1).Select
+    ActiveSheet.Name = "Data"
+    firstSheetName = ActiveSheet.Name
+    totalSheetCount = Sheets.Count
+    
+    
+    Dim ws As Worksheet
+    Dim wsSheet As Worksheet
+    Set wsSheet = Sheets(firstSheetName)
+
+    For Each ws In Worksheets
+        If ws.Name = firstSheetName Then
+            GoTo lastLine
+        End If
+        
+        lastRow = Sheets(firstSheetName).Range("A1048576").End(xlUp).Row
+        
+        
+        ws.Activate
+        variable = Cells(Rows.Count, 1).End(xlUp).Row
+        Rows("1:" & variable).Copy
+        
+        Sheets(firstSheetName).Select
+        Sheets(firstSheetName).Select
+        Range("A" & lastRow + 1).Select
+        ActiveSheet.Paste
+        ws.Delete
+        
+lastLine:
+    
+    Next
+
+    Application.DisplayAlerts = True
+    Application.CutCopyMode = False
+    Range("A1").Select
+End Sub
+
+
+''' paste from here
+
+Sub deleteSheetRow()
+    
+    Application.DisplayAlerts = False
+        Sheets("Data").Select
+        Sheets("Data").Activate
+        lastRow = Sheets("Data").Range("A1048576").End(xlUp).Row
+        For i = 2 To lastRow
+            Range("C" & i).Select
+            
+            If Range("C" & i).Value = "Registration Record" Then
+                ActiveCell.EntireRow.Select
+             '   Range(Selection, Selection.End(xlToRight)).Select
+                 Selection.Delete Shift:=xlUp
+            
+            End If
+            
+        Next i
+        
+    Application.DisplayAlerts = True
+    
+End Sub
+
+
+Sub GiveSheetName()
+    
+    Application.DisplayAlerts = False
+        Sheets("Data").Delete
+    Application.DisplayAlerts = True
+    
+    For i = 1 To Application.Sheets.Count
+        Application.Sheets(i).Name = "Sheet " & i
+    Next
+    
+End Sub
+
+
+
+
+
+Sub GiveSheetName1()
+    
+'    Application.DisplayAlerts = False
+'        Sheets("Data").Delete
+'    Application.DisplayAlerts = True
+    
+    For i = 1 To Application.Sheets.Count
+        If Application.Sheets(i).Name = "Data" Then
+            GoTo Last
+        End If
+        
+        Application.Sheets(i).Name = "Sheet " & i - 1 ''or write i-1
+Last:
+        
+    Next
+    
+End Sub
+
