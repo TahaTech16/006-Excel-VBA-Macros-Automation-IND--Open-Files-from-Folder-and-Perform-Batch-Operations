@@ -1,0 +1,1 @@
+# 006-Excel-VBA-Macros-Automation-IND--Open-Files-from-Folder-and-Perform-Batch-Operations
